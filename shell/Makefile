@@ -1,14 +1,14 @@
-all: test
+all: shell
 
 CFLAGS = -g -O2
 
-test: test.o mytoken.o
-	cc -o test test.o mytoken.o
+shell: shell.o mytoken.o
+	cc -o shell shell.o mytoken.o
 
 mytoc.o: mytoken.c
 	cc -c mytoken.c
 
-test.o: test.c mytoken.h
-	cc -c test.c
+shell.o: shell.c mytoken.h
+	cc -c shell.c
 clean:
-	rm -f  *.o mytoken mytoken.exe test test.exe
+	rm -f  *.o mytoken mytoken.exe shell shell.exe

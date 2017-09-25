@@ -73,7 +73,7 @@ char **mytoc(char *str, char delim){
 
   int numberTokens = countTokens(str, delim);
   char **tokenVec = (char **)calloc(numberTokens+1, sizeof(char *));
-  char buffer[100];
+  char buffer[1024];
   int bufferCounter = 0;
   char currentChar = str[0];
   int i = 0;

@@ -9,6 +9,8 @@ int compare(char *str1, char *str2);
 char * stringCopy(char *str);
 char ** findPATH(char **list);
 char * stringConcat(char *str1, char *str2);
+char * prevPath(char ** vect);
+int numberOfTokens(char **vect);
 
 int main(int argc, char **argv, char **envp){
   
@@ -28,13 +30,46 @@ int main(int argc, char **argv, char **envp){
       run = 0;
       break;
      
-    }  
+    }
+
+
+
+    if(compare(vecToken[0], "cd")){
+
+	  char *cmd = "chdir";
+
+	  if(compare(vecToken[1], "..")){
+
+	    char waka[1024];
+	    char *stridir;
+	    getcwd(waka, sizeof(waka));
+	    char **prev = mytoc(waka, '/');
+	    char *newPath = prevPath(prev);
+	    chdir(newPath);
+	    printf("New Path: %s\n", newPath);
+	    
+
+	  }
+
+      
+	  
+
+	}
+
+
+
+    
     int pid;
     pid = fork();
     
     //If child:
     if(pid == 0) {
 
+      
+
+
+
+      
       //Tries to execute with absolute path
       int ex = execve(vecToken[0], vecToken, envp);
       char *cmd = stringCopy(vecToken[0]);
@@ -76,6 +111,10 @@ int main(int argc, char **argv, char **envp){
 
 
 
+
+
+
+
 //Returns the length of a string
 int length(char *str){
 
@@ -107,6 +146,7 @@ int compare(char *str1, char *str2){
 return 0;
   
 }
+
 
 //Returns the PATH string
 char **findPATH(char** list){
@@ -171,3 +211,36 @@ char* stringConcat(char *str1, char *str2){
   return string;
 
 }
+
+ int numberOfTokens(char **vect){
+
+   int count = 0;
+   while(vect[count] != '\0'){
+
+     count++;
+
+   }
+
+   return count;
+
+ }
+
+ char *prevPath(char ** vect){
+
+   int numTok = numberOfTokens(vect);
+   int lenghtPath = 0;
+  
+   for(int i = 0; i < numTok-1; i++){
+     lenghtPath += length(vect[i]);
+   }
+   char *newPath  = (char *)malloc(lenghtPath);
+
+   for(int i = 0; i < numTok-1; i++){
+     newPath = stringConcat(newPath, "/");
+     newPath = stringConcat(newPath, vect[i]);
+     
+   }
+
+
+   return newPath;
+ }

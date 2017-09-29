@@ -17,10 +17,12 @@ int main(int argc, char**argv, char**envp)
     printf("child: fork returned %d\n", pid);
 
     close(1);
-    dup(pipeFds[1]);
+    //dup(pipeFds[1]);
     close(pipeFds[0]); close(pipeFds[1]);
 
-    printf("hello from child");
+    write(1, "Hello Cunt", 11);
+	  
+    //printf("Hello Cunt");
     exit(2);
 
   } else { 			/* parent */
@@ -31,10 +33,10 @@ int main(int argc, char**argv, char**envp)
     printf("parent: child's pid=%d\n", pid);
     
     close(0);
-    dup(pipeFds[0]);
+    //dup(pipeFds[0]);
     close(pipeFds[0]); close(pipeFds[1]);
     
-    fgets(buf, 100, stdin);
+    read(0, buf, 100);
     printf("parent read <%s> from child\n", buf);
 
     waitVal = waitpid(pid, &waitStatus, 0);

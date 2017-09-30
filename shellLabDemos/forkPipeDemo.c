@@ -17,12 +17,12 @@ int main(int argc, char**argv, char**envp)
     printf("child: fork returned %d\n", pid);
 
     close(1);
-    //dup(pipeFds[1]);
+    dup(pipeFds[1]);
     close(pipeFds[0]); close(pipeFds[1]);
 
-    write(1, "Hello Cunt", 11);
+    write(1, "Hello Popo", 11);
 	  
-    //printf("Hello Cunt");
+    
     exit(2);
 
   } else { 			/* parent */

@@ -17,6 +17,7 @@ int main(int argc, char **argv, char **envp){
 
   char **tenvp = findPATH(envp);
   char **path = mytoc(tenvp[1],':');
+  
   char buffer[512];
   int run = 1;
   
@@ -30,47 +31,74 @@ int main(int argc, char **argv, char **envp){
       run = 0;
       break;
      
-    }
+    }//if
 
-
-
+    ///////////////////////////////////////////////////////////////////////
+    
     if(compare(vecToken[0], "cd")){
 
-	  char *cmd = "chdir";
+      int absolute = 0;
 
-	  if(compare(vecToken[1], "..")){
+      
+	  if(compare(vecToken[1], "..") && vecToken[2] == '\0'){
 
 	    char waka[1024];
-	    char *stridir;
 	    getcwd(waka, sizeof(waka));
 	    char **prev = mytoc(waka, '/');
 	    char *newPath = prevPath(prev);
 	    chdir(newPath);
-	    printf("New Path: %s\n", newPath);
+	    //printf("New Path: %s\n", newPath);
 	    
+
+	  }//if ..
+	  else if(vecToken[1] != ".."){
+	    int pass = chdir(vecToken[1]);
+	    if(pass == 0){
+	      absolute = 1;
+	    }
 
 	  }
 
+	  else if(vecToken[1] != '\0' && absolute == 0){
+	    
+	    char waka[1024];
+	    getcwd(waka, sizeof(waka));
+	    
+	    char *newPath = stringConcat("/",vecToken[1]);
+	    newPath = stringConcat(waka, newPath);
+	    int runch = chdir(newPath);
+	    if(runch != 0)
+	      write(1, "Directory not found", 19); 
+
+	  }//if not ..
+
+    }//if cd
+
+    ////////////////////////////////////////////////////////////////////////////////
+    else{
+
+
+      //char ** pipeTokens = mytoc(buffer, '|');
+      // int pipeTok = numberOfTokens(pipeTokens);
+
       
-	  
-
-	}
-
-
-
+      
     
-    int pid;
-    pid = fork();
+      int pid;
+
+      ////////////////////////////////////////CHILD///////////////////////////////
+      pid = fork();
     
     //If child:
     if(pid == 0) {
 
+     
+
       
-
-
-
       
       //Tries to execute with absolute path
+      //char **firstEx = mytoc(pipeTokens[0], ' ');
+      
       int ex = execve(vecToken[0], vecToken, envp);
       char *cmd = stringCopy(vecToken[0]);
       if(ex == -1){
@@ -91,8 +119,11 @@ int main(int argc, char **argv, char **envp){
 
       exit(2);
     }
-    //If parent:
+
+    //////////////////////PARENT////////////////////////////////
     else{
+
+   
       
       int waitVal, waitStatus;
       waitpid(pid, &waitStatus, 0);
@@ -100,10 +131,14 @@ int main(int argc, char **argv, char **envp){
 
 	printf("Terminated with %d\n", waitStatus);
 	
-      }
-    }
+      }//if wait
+    }//else parent
+
+
+    }//Else if it is not cd
+  }//While that runs everything
     
-  }
+
     
   return 0;
   

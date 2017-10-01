@@ -27,6 +27,13 @@ int main(int argc, char **argv, char **envp){
     write(1, "[myShell] $ ", 11);
     read(0, buffer, 512);
     char **vecToken = mytoc(buffer,' ');
+    int toWait = numberOfTokens(vecToken);
+    int background = 0;
+    if(compare(vecToken[toWait-1], "&") == 1){
+	background = 1;
+	vecToken[toWait-1] = "\0";
+    }
+       
     if(compare(vecToken[0], "exit") == 1){
       run = 0;
       break;
@@ -78,11 +85,129 @@ int main(int argc, char **argv, char **envp){
     else{
 
 
-      //char ** pipeTokens = mytoc(buffer, '|');
-      // int pipeTok = numberOfTokens(pipeTokens);
+      char ** pipeTokens = mytoc(buffer, '|');
+      int pipeTok = numberOfTokens(pipeTokens);
+
+      /*****************************************************************/
+      if(pipeTok > 1){
+
+	int *fileDescriptor;
+	fileDescriptor = (int *) calloc(2, sizeof(int));
+	pipe(fileDescriptor);
+
+	int pid;
+	int pid2;
+
+	pipeTokens[0] = stringConcat(pipeTokens[0], " ");
+	pipeTokens[1] = stringConcat(pipeTokens[1], " ");
+	char **firstcmd = mytoc(pipeTokens[0], ' ');
+	char **secondcmd = mytoc(pipeTokens[1], ' ');
+	
+	/*_____________FIRST CHILD PIPE________________*/
+      pid = fork();
+    
+    //If child:
+    if(pid == 0) {
+                                                
+      dup2(fileDescriptor[1],1);
+      close(fileDescriptor[0]); 
+
+      int ex = execve(firstcmd[0], firstcmd, envp);
+      char *cmd = stringCopy(firstcmd[0]);
+      if(ex == -1){
+	int i = 0;
+	while(path[i] != '\0'){
+	  //Will look for the command in the PATH env
+	  char *cmdPath = stringConcat(path[i],"/");
+	  cmdPath = stringConcat(cmdPath, cmd);
+	  firstcmd[0] = malloc(length(cmdPath));
+	  firstcmd[0] = cmdPath;
+	  ex = execve(cmdPath, firstcmd, envp);
+	  i++;
+	}
+	write(1, "Command not found\n", 18);
+
+      }
+
+
+      exit(2);
+    }
+
+    //////////////////////PARENT////////////////////////////////
+    else{
+      
+      int waitVal, waitStatus;
+      waitpid(pid, &waitStatus, 0);
+      close(fileDescriptor[1]);
+      if(waitStatus != 0 && waitStatus != 512){
+
+	printf("Terminated with %d\n", waitStatus);
+	
+      }//if wait
+
+
+      pid2 = fork();
+    
+    //If child:
+    if(pid2 == 0) {
+      
+      dup2(fileDescriptor[0],0);
+      close(fileDescriptor[1]); 
+      
+      int ex = execve(secondcmd[0], secondcmd, envp);
+      char *cmd = stringCopy(secondcmd[0]);
+      if(ex == -1){
+	int i = 0;
+	while(path[i] != '\0'){
+	  //Will look for the command in the PATH env
+	  char *cmdPath = stringConcat(path[i],"/");
+	  cmdPath = stringConcat(cmdPath, cmd);
+	  secondcmd[0] = malloc(length(cmdPath));
+	  secondcmd[0] = cmdPath;
+	  ex = execve(cmdPath, secondcmd, envp);
+	  i++;
+	}
+	write(1, "Command not found\n", 18);
+
+      }
+
+
+      exit(2);
+    }
+
+    //////////////////////PARENT////////////////////////////////
+    else{
+      
+      int waitVal, waitStatus;
+      int toWait = numberOfTokens(vecToken);
+      if(compare(vecToken[toWait-1], "&") == 0){
+      waitpid(pid2, &waitStatus, 0);
+      dup2(0,fileDescriptor[0]);
+      dup2(1,fileDescriptor[1]);
+      
+      if(waitStatus != 0 && waitStatus != 512){
+
+	printf("Terminated with %d\n", waitStatus);
+	
+      }//if wait
+
+      }
+      
+    }//else parent
+
+
+    
+    
 
       
-      
+    }//else parent
+	
+
+    
+      }
+
+      /*********************************************************/
+      else if(pipeTok == 1){
     
       int pid;
 
@@ -92,12 +217,6 @@ int main(int argc, char **argv, char **envp){
     //If child:
     if(pid == 0) {
 
-     
-
-      
-      
-      //Tries to execute with absolute path
-      //char **firstEx = mytoc(pipeTokens[0], ' ');
       
       int ex = execve(vecToken[0], vecToken, envp);
       char *cmd = stringCopy(vecToken[0]);
@@ -126,16 +245,20 @@ int main(int argc, char **argv, char **envp){
    
       
       int waitVal, waitStatus;
-      waitpid(pid, &waitStatus, 0);
-      if(waitStatus != 0 && waitStatus != 512){
+      int toWait = numberOfTokens(vecToken);
+      if(!background){
+	waitpid(pid, &waitStatus, 0);
+	if(waitStatus != 0 && waitStatus != 512){
 
 	printf("Terminated with %d\n", waitStatus);
 	
       }//if wait
+      }
     }//else parent
-
+      }
 
     }//Else if it is not cd
+    
   }//While that runs everything
     
 

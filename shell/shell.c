@@ -24,7 +24,7 @@ int main(int argc, char **argv, char **envp){
   while(run){
 
     
-    write(1, "[myShell] $ ", 11);
+    // write(1, "[myShell] $ ", 11);
     read(0, buffer, 512);
     char **vecToken = mytoc(buffer,' ');
     int toWait = numberOfTokens(vecToken);

@@ -35,7 +35,6 @@ int main(int argc, char**argv, char**envp)
     close(0);
     //dup(pipeFds[0]);
     close(pipeFds[0]); close(pipeFds[1]);
-    
     read(0, buf, 100);
     printf("parent read <%s> from child\n", buf);
 
